@@ -1,0 +1,6 @@
+./bin/calc
+./obj/*.o
+./lib/*.a
+./source/test.c
+./source/a.out
+Makefile
