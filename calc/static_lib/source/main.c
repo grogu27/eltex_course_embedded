@@ -17,8 +17,9 @@ int main(){
 
         if(op == 6){
             printf("Вы вышли из программы\n");
-            exit(1);
+            break;
         }
+
         if(op == 5){
             printf(CLEAR_TERMINAL);
             continue;
@@ -62,6 +63,7 @@ int main(){
             default: 
                 break;
         }
+        
     }
     return 0;
 }
