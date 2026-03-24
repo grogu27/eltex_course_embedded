@@ -1,17 +1,35 @@
+.PHONY: all clean lib app
 
+CC ?= gcc
+DEBUG ?= 0
+LD_LIBRARY_PATH:=./lib
+PREFIX ?=~/opt/calc
 
-all: ./source/main.c ./source/add.c ./source/sub.c ./source/mul.c ./source/div.c
-	gcc ./obj/main.o ./obj/add.o ./obj/sub.o ./obj/mul.o ./obj/div.o -o calc && mv calc ./bin
+all: app
 
-run:
-	./bin/calc
+lib:
+	$(MAKE) -C ./source/lib CC=$(CC) DEBUG=$(DEBUG)
 
-build_lib: ./obj/main.o ./obj/add.o ./obj/sub.o ./obj/mul.o ./obj/div.o
-	ar rcs ./lib/libcalc.a ./obj/*
+app: lib
+	$(MAKE) -C ./source/app CC=$(CC) DEBUG=$(DEBUG)
 
-build: ./lib/libcalc.a
-	gcc ./source
+clean:
+	@ echo "Cleaning..."
+	@$(MAKE) -C ./source/lib clean
+	@$(MAKE) -C ./source/app clean
+	@rm -rf ./obj ./bin ./lib
 
-clean: 
-	rm -rf ./obj/* ./bin/* ./lib/*
+run: app
+	LD_LIBRARY_PATH=$(LD_LIBRARY_PATH) ./bin/calc
 
+install:
+	@echo "Installing to $(PREFIX)"
+	mkdir -p $(PREFIX)/bin $(PREFIX)/lib $(PREFIX)/include
+	cp bin/calc $(PREFIX)/bin/
+	cp lib/libcalc.so $(PREFIX)/lib/
+	cp include/dynamic_calc.h $(PREFIX)/include/
+
+uninstall:
+	rm -f $(PREFIX)/bin/calc
+	rm -f $(PREFIX)/lib/libcalc.so
+	rm -f $(PREFIX)/include/dynamic_calc.h

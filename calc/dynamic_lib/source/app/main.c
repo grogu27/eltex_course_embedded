@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "../include/dynamic_calc.h"
+#include "../../include/dynamic_calc.h"
 #include <unistd.h>
 #define CLEAR_TERMINAL "\033[2J\033[H"
 #define RED "\033[31m"
@@ -17,7 +17,7 @@ int main(){
 
         if(op == 6){
             printf("Вы вышли из программы\n");
-            exit(1);
+            break;;
         }
         if(op == 5){
             printf(CLEAR_TERMINAL);
