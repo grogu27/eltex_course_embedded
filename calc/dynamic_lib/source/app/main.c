@@ -5,15 +5,32 @@
 #define CLEAR_TERMINAL "\033[2J\033[H"
 #define RED "\033[31m"
 
+void clear_input_buffer(){
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF)
+    {
+        /* code */
+    }
+    
+}
+
 int main(){
 
     int op;
     long res;
+    char tail;
     int operand2, operand1;
     while(1){
         printf("Введите номер бинарной операции [1-4]\n");
         printf("1)Сложение\n2)Вычитание\n3)Умножение\n4)Деление\n5)Очистить терминал\n6)Выход\n");
-        scanf("%d", &op);
+
+        if(scanf("%d%c", &op, &tail) != 2 || tail != '\n'){
+            printf("Ошибка ввода: нужно ввести число [1-4] Подождите 2 секунды...\n");
+            clear_input_buffer();
+            sleep(2);
+            printf(CLEAR_TERMINAL);
+            continue;
+        }
 
         if(op == 6){
             printf("Вы вышли из программы\n");
@@ -32,7 +49,15 @@ int main(){
         }
 
         printf("Введите два операнда в диапазоне [-2147483648, 2147483647]\n");
-        scanf("%d %d", &operand1, &operand2);
+
+        if(scanf("%d %d%c", &operand1, &operand2, &tail) != 3 || tail != '\n'){
+            printf("Вы ввели неправильный номер бинарной операции. Подождите 2 секунды...\n");
+            clear_input_buffer();
+            sleep(2);
+            printf(CLEAR_TERMINAL);
+            continue;
+        }
+
         switch(op){
             case 1:
                 res = calc_add(operand1, operand2);
