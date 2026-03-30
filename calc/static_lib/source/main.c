@@ -44,6 +44,7 @@ int main(){
             
         if (op > 5 || op < 1){
             printf("Вы ввели неправильный номер бинарной операции. Подождите 2 секунды...\n");
+            clear_input();
             sleep(2);
             printf(CLEAR_TERMINAL);
             continue;
