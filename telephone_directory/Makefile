@@ -1,7 +1,7 @@
 
 
 CC:=gcc
-CFLAGS:=-Wall -Werror
+CFLAGS:=-Wall -Werror -MMD -MP
 DEBUG:=0
 BIN_DIR:=./bin
 OBJ_DIR:=./obj
@@ -11,6 +11,7 @@ TARGET:=$(BIN_DIR)/tel_dir
 
 SRC:=$(wildcard $(SRC_DIR)/*.c)
 OBJ:=$(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRC))
+DEP := $(OBJ:.o=.d)
 
 ifeq ($(DEBUG), 1)
 CFLAGS+=-g
@@ -43,3 +44,5 @@ print_vars:
 
 run: all
 	$(TARGET)
+
+-include $(DEP)
