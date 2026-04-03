@@ -1,0 +1,46 @@
+LED включен
+LED выключен
+24
+arr[0] = 10
+0x7ffdb22b5a38
+0x7ffdb22b5a38
+arr[1] = 20
+0x7ffdb22b5a3c
+0x7ffdb22b5a3c
+arr[2] = 30
+0x7ffdb22b5a40
+0x7ffdb22b5a40
+LED включен
+LED выключен
+update2 = 500
+update2 = 54
+1
+hello
+l
+108
+l
+lo
+
+
+42
+-171798692
+Value: 55
+100
+Глобальный массив:
+local_arr[2] = 0
+local_arr[3] = 0
+
+Локальный массив:
+local_arr[2] = 0
+local_arr[3] = 0
+
+local_arr как строка: "w"
+w 
+1
+wer8[
+ID: 42
+test format: qwe
+ rty	2754
+ff
+hello 54 53
+Hello
