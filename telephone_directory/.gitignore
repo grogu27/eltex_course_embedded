@@ -1,4 +1,6 @@
 test.c
-./obj/*
-./bin/*
+obj/*
+bin/*
 a.out
+*.o
+*.d
