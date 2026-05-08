@@ -9,11 +9,28 @@ int main(){
 
     pid_t pid;
     int status;
+ 
+    pid = fork();
+    
+    if (pid == -1){
+        perror("fork");
+        exit(EXIT_FAILURE);
+    }
 
-    printf("Hello!!");
-    //puts("Hello2");
-    printf("Hello!!\n");
-    sleep(5);
+    if (pid == 0){
+        printf("child PID = %d\nchild PPID = %d\nchild GID = %d\nchild SID = %d\n", getpid(), getppid(), getgid(), getsid(getpid()));
+        //execl("/bin/dir", "dir", NULL);
+        //perror("exec failed"); // выполнится только при ошибке
+        //exit(1);
+        exit(EXIT_SUCCESS);
+        
+    }
+    else{
+        printf("parent PID = %d\nparent PPID = %d\nparent GID = %d\nparent SID = %d\n", getpid(), getppid(), getgid(), getsid(getpid()));
+        wait(&status);
+        printf("status = %d\n", WEXITSTATUS(status));
 
-    return 0;
+    }
+    
+    exit(EXIT_SUCCESS);
 }
