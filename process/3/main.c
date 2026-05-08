@@ -41,23 +41,6 @@ int main(){
             exit(0);
         }
 
-        if(strcmp("clear", buf) == 0){
-            pid = fork();
-                if(pid == -1){
-                    perror("fork");
-                    continue;
-                }
-                if(pid == 0){
-                    execlp("clear", "clear", NULL);
-                    perror("exec failed");  
-                    exit(1);
-                }
-                else{
-                    wait(NULL);
-                    continue;
-                }
-        }   
-
         char *args[ARGS];
         int i = 0;
         char *token = strtok(buf, " ");
@@ -74,7 +57,7 @@ int main(){
             continue;
         }
         if(pid == 0){
-            execvp(args[0], args);    
+            execvp(args[0], args);    // Сначала ищет в PATH
             perror("exec failed"); // если exec не сработал
             exit(1);
         }
