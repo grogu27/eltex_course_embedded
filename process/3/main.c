@@ -14,14 +14,25 @@
 #define MAX 255
 #define ARGS 64
 #define PATH_MAX 255
+
 int main(){
 
     char buf[MAX];
     pid_t pid;
     char cwd[PATH_MAX];
+    char hostname[256];
+    char *user_name;
+    gethostname(hostname, sizeof(hostname));
+    if((user_name = getenv("USER")) == NULL){
+        user_name = "user";
+    }  
+    //printf("mini_bash:\n");
     while (1){
         getcwd(cwd, sizeof(cwd));
-        printf("mini_bash:~%s$ ", cwd);
+
+        //printf("mini_bash:~%s$ ", cwd);
+        
+        printf("%s@%s:~%s$ ", user_name, hostname, cwd);
         fflush(stdout);
         
         if(fgets(buf, sizeof(buf), stdin) == NULL){
