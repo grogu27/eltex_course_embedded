@@ -22,7 +22,10 @@ int main(){
     char cwd[PATH_MAX];
     char hostname[256];
     char *user_name;
-    gethostname(hostname, sizeof(hostname));
+    if(gethostname(hostname, sizeof(hostname)) == -1){ 
+        sprintf(hostname, "%s", "localhost");
+    } 
+
     if((user_name = getenv("USER")) == NULL){
         user_name = "user";
     }  
