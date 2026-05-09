@@ -11,18 +11,17 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <string.h>
-
 #define MAX 255
 #define ARGS 64
-
+#define PATH_MAX 255
 int main(){
 
     char buf[MAX];
     pid_t pid;
-    
+    char cwd[PATH_MAX];
     while (1){
-        
-        printf("mini_bash$ ");
+        getcwd(cwd, sizeof(cwd));
+        printf("mini_bash:~%s$ ", cwd);
         fflush(stdout);
         
         if(fgets(buf, sizeof(buf), stdin) == NULL){
@@ -34,12 +33,13 @@ int main(){
             if(buf[i] == '\n')
                 buf[i] = '\0';
         }
-        printf("%s\n", buf);
+        //printf("%s\n", buf);
 
         if(strcmp("exit", buf) == 0){
             printf("Завершение программы\n");
             exit(0);
         }
+
 
         char *args[ARGS];
         int i = 0;
@@ -49,6 +49,11 @@ int main(){
             token = strtok(NULL, " ");
         }
         args[i] = NULL;
+
+        if(strcmp("cd", buf) == 0){
+            chdir(args[1]);
+            continue;
+        }
 
         pid_t pid = fork();
 
