@@ -8,6 +8,7 @@ SRC_CLIENT:=$(wildcard *client.c)
 OBJ_CLIENT:=$(SRC_CLIENT:.c=.o)
 SRC_SERVER:=$(wildcard *server.c)
 OBJ_SERVER:=$(SRC_SERVER:.c=.o)
+TMP_FILE:= tmp*
 
 
 all: $(TARGET_CLIENT) $(TARGET_SERVER)
@@ -28,8 +29,8 @@ print_vars:
 	@echo OBJ_SERVER = $(OBJ_SERVER)
 
 clean:
-	rm -rf $(OBJ_SERVER) $(OBJ_CLIENT) $(TARGET_CLIENT) $(TARGET_SERVER)
-
+	rm -rf $(OBJ_SERVER) $(OBJ_CLIENT) $(TARGET_CLIENT) $(TARGET_SERVER) $(TMP_FILE)
+	
 .PHONY: print_vars clean all
 
 	

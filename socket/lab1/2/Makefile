@@ -2,7 +2,7 @@ CC:=gcc
 CFLAGS:=-Wall -Werror
 TARGET_CLIENT:=client
 TARGET_SERVER:=server
-
+TMP_FILE:= tmp*
 
 SRC_CLIENT:=$(wildcard *client.c)
 OBJ_CLIENT:=$(SRC_CLIENT:.c=.o)
@@ -26,9 +26,10 @@ print_vars:
 	@echo OBJ_CLIENT = $(OBJ_CLIENT)
 	@echo SRC_SERVER = $(SRC_SERVER)
 	@echo OBJ_SERVER = $(OBJ_SERVER)
+	@echo OBJ_SERVER = $(TMP_FILE)
 
 clean:
-	rm -rf $(OBJ_SERVER) $(OBJ_CLIENT) $(TARGET_CLIENT) $(TARGET_SERVER)
+	rm -rf $(OBJ_SERVER) $(OBJ_CLIENT) $(TARGET_CLIENT) $(TARGET_SERVER) $(TMP_FILE)
 
 .PHONY: print_vars clean all
 
