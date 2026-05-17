@@ -17,9 +17,7 @@
 
 int main(){
 
-    int flag_pipe = 0;
     char buf[MAX];
-    pid_t pid;
     char cwd[PATH_MAX];
     char hostname[256];
     char *user_name;
@@ -134,7 +132,7 @@ int main(){
             //создание первого процесса
             left_pid = fork();
 
-            if(pid == -1){
+            if(left_pid == -1){
                 perror("fork");
                 exit(1);
             }
