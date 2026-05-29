@@ -1,0 +1,7 @@
+*/client
+*/a.out
+*/server
+*/tcp/proc_server
+*/tcp/thread_server
+*/tcp/client
+*/tcp/*.o
