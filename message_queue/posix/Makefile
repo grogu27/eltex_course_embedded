@@ -2,7 +2,7 @@ CC:=gcc
 CFLAGS:=-Wall -Werror
 TARGET_CLIENT:=client
 TARGET_SERVER:=server
-
+LDFLAGS:= -lrt
 
 SRC_CLIENT:=$(wildcard *client.c)
 OBJ_CLIENT:=$(SRC_CLIENT:.c=.o)
@@ -13,10 +13,10 @@ OBJ_SERVER:=$(SRC_SERVER:.c=.o)
 all: $(TARGET_CLIENT) $(TARGET_SERVER)
 
 $(TARGET_CLIENT): $(OBJ_CLIENT)
-	$(CC) $< -o $@
+	$(CC) $< -o $@ $(LDFLAGS)
 
 $(TARGET_SERVER): $(OBJ_SERVER)
-	$(CC) $< -o $@
+	$(CC) $< -o $@ $(LDFLAGS)
 
 %.o: %.c
 	$(CC) -c $(CFLAGS) $< -o $@

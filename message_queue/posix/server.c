@@ -1,71 +1,80 @@
- #include <stdio.h>
+#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
 #include <mqueue.h>
 #include <fcntl.h>
-#include <errno.h>
+#include <unistd.h>
+#include <string.h>
+#include <limits.h>
 
-#define MAX_MSG_SIZE 128
-#define SERVER_QUEUE "/POSIX-Server"
-#define CLIENT_QUEUE "/POSIX-Client"
+#define SERVER_MQ "/mq_serv.mq"
+#define CL_MQ "/mq_cl.mq"
+        //    struct mq_attr {
+        //        long mq_flags;       /* Flags (ignored for mq_open()) */
+        //        long mq_maxmsg;      /* Max. # of messages on queue */
+        //        long mq_msgsize;     /* Max. message size (bytes) */
+        //        long mq_curmsgs;     /* # of messages currently in queue
+        //                                (ignored for mq_open()) */
+        //    };
 
-int main(void)
-{
-    struct mq_attr attr = {
-        .mq_flags = 0,
-        .mq_maxmsg = 10,
-        .mq_msgsize = MAX_MSG_SIZE,
-        .mq_curmsgs = 0
-    };
+        
+// сообщения от сервера имеют приоритет 10
+// сообщения от клиента имеют приоритет 20
 
-    if (mq_unlink(CLIENT_QUEUE) == -1 && errno != ENOENT) {
-        perror("mq_unlink /POSIX-Client");
-        return 1;
+// grogu@localhost:~/eltex/embedded_c/eltex_course_embedded/message_queue/posix copy$ cat /proc/sys/fs/mqueue/msgsize_max
+// 8192
+
+// в моей системе по умолчанию размер одного сообщения 8Kb
+struct message{
+    pid_t pid;
+    char text[6];
+};
+
+int main(){
+    printf("pid=%d\n", getpid());
+    mq_unlink(SERVER_MQ);
+    mq_unlink(CL_MQ);
+    mqd_t mq_fd_serv, mq_fd_cl;
+    struct mq_attr attr;
+    memset(&attr, 0, sizeof(attr));
+    attr.mq_msgsize = 1024;
+    attr.mq_maxmsg = 10;
+
+    mq_fd_serv = mq_open(SERVER_MQ, O_CREAT | O_WRONLY, 0666, &attr);
+    if(mq_fd_serv < 0){
+        perror("mq_open");
+        exit(EXIT_FAILURE);
     }
 
-    if (mq_unlink(SERVER_QUEUE) == -1 && errno != ENOENT) {
-        perror("mq_unlink /POSIX-Server");
-        return 1;
+    mq_fd_cl = mq_open(CL_MQ, O_CREAT | O_RDONLY, 0666, NULL);
+    if(mq_fd_cl < 0){
+        perror("mq_open");
+        exit(EXIT_FAILURE);
     }
+    struct message message = {.pid = getpid(), .text = "hi!"};
 
-    mqd_t mq_client = mq_open(CLIENT_QUEUE, O_WRONLY | O_CREAT, 0666, &attr);
-    if (mq_client == (mqd_t)-1) {
-        perror("mq_open /POSIX-Client");
-        return 1;
-    }
-
-    mqd_t mq_server = mq_open(SERVER_QUEUE, O_RDONLY | O_CREAT, 0666, &attr);
-    if (mq_server == (mqd_t)-1) {
-        perror("mq_open /POSIX-Server");
-        mq_close(mq_client);
-        mq_unlink(CLIENT_QUEUE);
-        return 1;
-    }
-
-    char send_msg[MAX_MSG_SIZE];
-    snprintf(send_msg, sizeof(send_msg), "Hi!");
-    if (mq_send(mq_client, send_msg, strlen(send_msg) + 1, 0) == -1) {
+    int res_mq_send = mq_send(mq_fd_serv, (char*)&message, sizeof(message), 10);
+    if(res_mq_send < 0){
         perror("mq_send");
-        mq_close(mq_client);
-        mq_close(mq_server);
-        return 1;
+        exit(EXIT_FAILURE);
     }
-
-    char reply[MAX_MSG_SIZE];
-    if (mq_receive(mq_server, reply, sizeof(reply), NULL) == -1) {
-        perror("mq_receive");
-        mq_close(mq_client);
-        mq_close(mq_server);
-        return 1;
-    }
-    printf("Client message: %s\n", reply);
-
-    mq_close(mq_client);
-    mq_close(mq_server);
-
-    mq_unlink(CLIENT_QUEUE);
-    mq_unlink(SERVER_QUEUE);
+    printf("Сервер записал в очередь сообщений сообщение: %s\tразмером %ld байт\tс приоритетом %u\n", message.text, sizeof(message), 10);
     
+    mq_getattr(mq_fd_cl, &attr);
+
+    char *buff_message_from_cl = malloc(attr.mq_msgsize); 
+    unsigned int prio;
+    ssize_t res_mq_receive = mq_receive(mq_fd_cl, buff_message_from_cl, attr.mq_msgsize, &prio);
+    struct message *message_from_cl = (struct message*)buff_message_from_cl;
+    
+    printf("Сервер получил от клиента(pid=%d) сообщение: %s\t%ld байт\tс приоритетом %u\n", message_from_cl->pid, message_from_cl->text, res_mq_receive, prio);
+
+
+    printf("(CL_MQ)Макс кол-ва сообщений в очереди: %ld\tМакс размер одного сообщения: %ld\n", attr.mq_maxmsg, attr.mq_msgsize);
+
+    free(message_from_cl);
+    mq_close(mq_fd_serv);
+    mq_close(mq_fd_cl);
+    mq_unlink(SERVER_MQ);
+    mq_unlink(CL_MQ);
     return 0;
 }

@@ -1,52 +1,60 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
 #include <mqueue.h>
 #include <fcntl.h>
+#include <unistd.h>
+#include <string.h>
+#include <limits.h>
 
-#define MAX_MSG_SIZE 128
-#define SERVER_QUEUE "/POSIX-Server"
-#define CLIENT_QUEUE "/POSIX-Client"
+#define SERVER_MQ "/mq_serv.mq"
+#define CL_MQ "/mq_cl.mq"
 
-int main(void)
-{
-    mqd_t mq_client = mq_open(CLIENT_QUEUE, O_RDONLY);
-    if (mq_client == (mqd_t)-1) {
-        perror("mq_open /POSIX-Client");
-        return 1;
+struct message{
+    pid_t pid;
+    char text[6];
+};
+
+// сообщения от сервера имеют приоритет 10
+// сообщения от клиента имеют приоритет 20
+int main(){
+    printf("pid=%d\n", getpid());
+    mqd_t mq_fd_cl, mq_fd_serv;
+    struct message message = {.pid = getpid(), .text = "hi2"};
+    struct message message_from_server = {0};
+    unsigned int prio;
+    struct mq_attr attr;
+    memset(&attr, 0, sizeof(attr));
+    mq_fd_cl = mq_open(CL_MQ, O_WRONLY);
+    if(mq_fd_cl < 0){
+        perror("mq_open");
+        exit(EXIT_FAILURE);
     }
 
-    mqd_t mq_server = mq_open(SERVER_QUEUE, O_WRONLY);
-    if (mq_server == (mqd_t)-1) {
-        perror("mq_open /POSIX-Server");
-        mq_close(mq_client);
-        return 1;
+    mq_fd_serv = mq_open(SERVER_MQ, O_RDONLY);
+    if(mq_fd_serv < 0){
+        perror("mq_open");
+        exit(EXIT_FAILURE);
     }
+        
+    mq_getattr(mq_fd_serv, &attr);
 
-    char reply[MAX_MSG_SIZE];
-
-    if (mq_receive(mq_client, reply, sizeof(reply), NULL) == -1) {
+    ssize_t res_mq_recv = mq_receive(mq_fd_serv, (char*)&message_from_server, attr.mq_msgsize, &prio);
+    if(res_mq_recv < 0){
         perror("mq_receive");
-        mq_close(mq_client);
-        mq_close(mq_server);
-        return 1;
+        exit(EXIT_FAILURE);
     }
+    printf("Клиент получил от сервера(pid=%d) сообщение: %s\t%ld байт\tс приоритетом %u\n",message_from_server.pid, message_from_server.text, res_mq_recv, prio);
 
-    printf("Server message: %s\n", reply);
-
-    char send_msg[MAX_MSG_SIZE];
-
-    snprintf(send_msg, sizeof(send_msg), "Hello!");
-    if (mq_send(mq_server, send_msg, strlen(send_msg) + 1, 0) == -1) {
+    int res_mq_send = mq_send(mq_fd_cl, (char *)&message, sizeof(message), 20);
+    if(res_mq_send < 0){
         perror("mq_send");
-        mq_close(mq_client);
-        mq_close(mq_server);
-        return 1;
-    }
+        exit(EXIT_FAILURE);
+    }   
+    printf("Клиент записал в очередь сообщений сообщение: %s\tразмером %ld байт\tс приоритетом %u\n", message.text, sizeof(message), 20);
 
-    mq_close(mq_client);
-    mq_close(mq_server); 
-
+    printf("(SERVER_MQ)Макс кол-ва сообщений в очереди: %ld\tМакс размер одного сообщения: %ld\n", attr.mq_maxmsg, attr.mq_msgsize);
+    
+    mq_close(mq_fd_serv);
+    mq_close(mq_fd_cl);
     return 0;
 }
