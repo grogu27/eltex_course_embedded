@@ -22,12 +22,7 @@ int main(){
     key_t key_serv; 
     int ds_mq_serv;
 
-    char path_server[255];
-    char cwd[255];
-    snprintf(path_server, sizeof(path_server), "%s/%s", getcwd(cwd, sizeof(cwd)), MQ_SERV);
-
-
-    if((key_serv = ftok(path_server, 1)) < 0){
+    if((key_serv = ftok(MQ_SERV, 1)) < 0){
         perror("ftok");
         exit(EXIT_FAILURE);
     }
