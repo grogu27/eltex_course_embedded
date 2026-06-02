@@ -106,13 +106,13 @@ int main(){
         inet_ntop(AF_INET, &ip->saddr, src, sizeof(src));
         inet_ntop(AF_INET, &ip->daddr, dst, sizeof(dst));
 
-        printf("ip version: %u\nihl: %u\ntos: %u\nid: %u\nfrag off: %u\nttl: %u\nprotocol: %u\nip_check: %u\ns_addr: %s\nd_addr: %s\n", \
-            ip->version, ip->ihl, ip->tos, ip->id, ip->frag_off, ip->ttl, ip->protocol, ip->check, src, dst);
+        printf("ip version: %u\nihl: %u\ntos: %u\ntotal_len: %u\nid: %u\nfrag off: %u\nttl: %u\nprotocol: %u\nip_check: %u\ns_addr: %s\nd_addr: %s\n", \
+            ip->version, ip->ihl, ip->tos, ntohs(ip->tot_len), ntohs(ip->id), ntohs(ip->frag_off), ip->ttl, ip->protocol, ntohs(ip->check), src, dst);
         ip_len = ip->ihl * 4; //ihl хранится в 32-битных словах.
         udp = (struct udphdr*)(buf + ip_len);
         payload = buf + ip_len + sizeof(struct udphdr); 
 
-        printf("s_port: %u\nd_port: %u\nudp_len: %u\nudp_check: %u\n", udp->source, udp->dest, udp->len, udp->check);
+        printf("s_port: %u\nd_port: %u\nudp_len: %u\nudp_check: %u\n", ntohs(udp->source), ntohs(udp->dest), ntohs(udp->len), ntohs(udp->check));
 
         printf("payload: %s\n", payload);
     }
