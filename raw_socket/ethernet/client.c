@@ -18,6 +18,7 @@
 #define N 255
 #define IF_NAME "eth0"
 
+uint16_t ip_checksum(void *buf, int len);
 
                 //   0      7 8     15 16    23 24    31                         
                 //  +--------+--------+--------+--------+             
@@ -133,11 +134,11 @@ int main(){
         exit(EXIT_FAILURE);
     }
 
-    int flag = 1;
-    if(setsockopt(sock, IPPROTO_IP, IP_HDRINCL, &flag, sizeof(flag)) < 0){
-        perror("setsockopt");
-        exit(EXIT_FAILURE);
-    }
+    // int flag = 1;
+    // if(setsockopt(sock, IPPROTO_IP, IP_HDRINCL, &flag, sizeof(flag)) < 0){
+    //     perror("setsockopt");
+    //     exit(EXIT_FAILURE);
+    // }
 
     unsigned char dst_mac[6] =
     {
@@ -166,18 +167,21 @@ int main(){
     memcpy(eth_header.h_dest, dst_mac, 6);
     memcpy(eth_header.h_source, src_mac, 6);
     
-
-    ip_header.id = 0; // ядро ос сама заполнит
+    memset(&ip_header, 0, sizeof(ip_header));
+    ip_header.id = htons(rand()); 
     ip_header.daddr = inet_addr(IP_SERV); // inet_addr работает только для ipv4
     ip_header.saddr = inet_addr(IP_CL);
     ip_header.frag_off = 0; // размер ip пакета не превышает MTU, так что фрагментации не будет
     ip_header.ihl = 5; // 5 * 5 = 20 байт (ip пакет без опций)
-    ip_header.check = 0; // ядро ос сама заполнит
+    ip_header.check = 0; 
     ip_header.tos = 0; // вроде можно не указывать
-    ip_header.protocol = 17; // код udp. вроде как можно использовать IPPROTO_UDP
+    ip_header.protocol = IPPROTO_UDP; // код udp. вроде как можно использовать IPPROTO_UDP
     ip_header.ttl = 128;
     ip_header.version = IPVERSION;
-    ip_header.tot_len = 0; // ядро ос сама заполнит
+    ip_header.tot_len = htons(sizeof(struct udphdr) + sizeof(struct iphdr) + len_message + 1); 
+
+    ip_header.check = ip_checksum(&ip_header, sizeof(ip_header));
+
 
     udp_header.dest = htons(PORT_SERV);
     udp_header.source = htons(PORT_CL);
@@ -274,3 +278,24 @@ int main(){
     return 0;
 }
 
+uint16_t ip_checksum(void *buf, int len) {
+    uint32_t sum = 0;
+    uint16_t *ptr = (uint16_t *)buf;
+    int i;
+    
+    // Суммируем по 2 байтам
+    for (i = 0; i < len / 2; i++) {
+        sum += *ptr;  
+        ptr++;
+    }
+    
+    if (len % 2 != 0) {
+        sum += *(uint8_t *)ptr;
+    }
+    
+    while (sum >> 16) {
+        sum = (sum & 0xFFFF) + (sum >> 16);
+    }
+    
+    return (uint16_t)~sum;
+}
