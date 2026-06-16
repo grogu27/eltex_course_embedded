@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <sys/wait.h>
 #include <errno.h>
+#include <time.h>
 
 #define SERV_PORT 7777
 #define SERV_IP "127.0.0.1"
@@ -20,10 +21,11 @@ int main(){
     int sock;
     struct sockaddr_in serv;
     socklen_t size_serv = sizeof(serv);
-    char message[255] = "hello";
+    const char message[255] = "Time";
     char message_from_serv[255];
     ssize_t bytes_from_serv;
     ssize_t bytes_from_cl;
+    struct tm time = {0}; 
 
     if((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0){
         perror("socket");
@@ -51,19 +53,28 @@ int main(){
         }        
         printf("КЛИЕНТ: Клиент отправил сообщение серверу: %s\n", message);
         
-        while(1){
-            bytes_from_serv = recv(sock, message_from_serv, 1, 0);
+        //while(1){
+            bytes_from_serv = recv(sock, message_from_serv, sizeof(struct tm), 0);
             printf("КЛИЕНТ: Клиент получил сообщение %s %ld байт от сервера\n", message_from_serv, bytes_from_serv);
             if(bytes_from_serv < 0){
                 perror("recv");
                 exit(EXIT_FAILURE);
             }
-            if(bytes_from_serv == 0){ // Истина, если сервер закрыл сокет.
-                printf("КЛИЕНТ: Клиент больше не получает данные\n");
-                break;
-            }
+            // if(bytes_from_serv == 0){ // Истина, если сервер закрыл сокет.
+            //     printf("КЛИЕНТ: Клиент больше не получает данные\n");
+            //     break;
+            // }
 
-        }
+            if((sscanf(message_from_serv, "%d-%d-%d %d:%d:%d", &time.tm_year, &time.tm_mon, &time.tm_mday, &time.tm_hour, &time.tm_min, &time.tm_sec) != 6)){
+                perror("sscanf");
+                return 0;
+            }
+            printf("Разобранное время:\n");
+            printf("  Год: %d\n", time.tm_year );
+            printf("  Месяц: %d\n", time.tm_mon);
+            printf("  День: %d\n", time.tm_mday);
+            printf("  Время: %02d:%02d:%02d\n", 
+                time.tm_hour, time.tm_min, time.tm_sec);        
         
 
     

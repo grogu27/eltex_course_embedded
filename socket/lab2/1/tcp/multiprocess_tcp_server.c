@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <sys/wait.h>
 #include <errno.h>
+#include <time.h>
 
 #define SERV_PORT 7777
 #define SERV_IP "127.0.0.1"
@@ -99,8 +100,10 @@ void client_handler(int sock_cl, struct sockaddr_in client){
     ssize_t bytes_from_serv;
     char buff_cl[255];
     char message[255];
-    int len_buff_cl;
+    //char *message = NULL;
+    //int len_buff_cl;
     int count = 1;
+    time_t timer;
 
     while(1){
         memset(buff_cl, 0, sizeof(buff_cl));
@@ -116,16 +119,23 @@ void client_handler(int sock_cl, struct sockaddr_in client){
         }
         printf("СЕРВЕР: Cервер получил от клиента[%s:%d] сообщение №%d: %s\n", inet_ntoa(client.sin_addr), ntohs(client.sin_port), count++, buff_cl);
         
-        len_buff_cl = strlen(buff_cl);
-        snprintf(message, sizeof(message), "%s",  buff_cl);
-        message[len_buff_cl] = '5';
-        message[len_buff_cl+1] = '\0';
-
+        // len_buff_cl = strlen(buff_cl);
+        // snprintf(message, sizeof(message), "%s",  buff_cl);
+        // message[len_buff_cl] = '5';
+        // message[len_buff_cl+1] = '\0';
+        timer = time(NULL);
+       // message = (char*)timer;
+        struct tm *tm_info = localtime(&timer);
+        printf("Время: %ld\n", timer);
+        strftime(message, 255, "%Y-%m-%d %H:%M:%S", tm_info);
+        printf("message: %s\n", message);
+        printf("Hour: %d, Min: %d, Sec: %d\nDay: %d, Month: %d, Year: %d\n", tm_info->tm_hour, tm_info->tm_min, tm_info->tm_sec, tm_info->tm_mday, tm_info->tm_mon, tm_info->tm_year);
         bytes_from_serv = send(sock_cl, message, strlen(message)+1, 0);
         if(bytes_from_serv < 0){
             perror("send");
             exit(EXIT_FAILURE);
         }
+
     }
 
     close(sock_cl);
